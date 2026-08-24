@@ -6,35 +6,42 @@ const ingestionService = require('../rag/ingestionService');
 let documentWorker = null;
 
 const initDocumentWorker = () => {
+  if (!env.REDIS_URL || env.REDIS_URL.includes('127.0.0.1') || env.REDIS_URL.includes('localhost')) {
+    return null;
+  }
+
   try {
     const redisConnection = new IORedis(env.REDIS_URL, {
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
-      retryStrategy: (times) => (times > 2 ? null : 2000),
+      lazyConnect: true,
+      retryStrategy: () => null,
     });
 
-    documentWorker = new Worker(
-      'document-processing',
-      async (job) => {
-        const { documentId, versionNumber } = job.data;
-        console.log(`[Worker] Processing BullMQ job ${job.id} for Document: ${documentId}`);
-        return await ingestionService.processDocument(documentId, versionNumber);
-      },
-      {
-        connection: redisConnection,
-        concurrency: 2,
-      }
-    );
+    redisConnection.connect().then(() => {
+      documentWorker = new Worker(
+        'document-processing',
+        async (job) => {
+          const { documentId, versionNumber } = job.data;
+          console.log(`[Worker] Processing BullMQ job ${job.id} for Document: ${documentId}`);
+          return await ingestionService.processDocument(documentId, versionNumber);
+        },
+        {
+          connection: redisConnection,
+          concurrency: 2,
+        }
+      );
 
-    documentWorker.on('completed', (job) => {
-      console.log(`[Worker] Job ${job.id} completed successfully`);
-    });
+      documentWorker.on('completed', (job) => {
+        console.log(`[Worker] Job ${job.id} completed successfully`);
+      });
 
-    documentWorker.on('failed', (job, err) => {
-      console.error(`[Worker] Job ${job?.id} failed:`, err.message);
-    });
+      documentWorker.on('failed', (job, err) => {
+        console.error(`[Worker] Job ${job?.id} failed:`, err.message);
+      });
+    }).catch(() => {});
   } catch (err) {
-    console.warn('[Worker] BullMQ Worker initialization skipped.');
+    // Skipped
   }
 
   return documentWorker;

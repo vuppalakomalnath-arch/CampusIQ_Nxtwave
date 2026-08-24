@@ -6,45 +6,40 @@ const ingestionService = require('../rag/ingestionService');
 let documentQueue = null;
 let isRedisAvailable = false;
 
-try {
-  const redisConnection = new IORedis(env.REDIS_URL, {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-    retryStrategy: (times) => {
-      if (times > 2) {
-        // Stop spamming if local Redis is down
-        return null;
-      }
-      return 2000;
-    },
-  });
+// Only attempt Redis connection if REDIS_URL is explicitly set and not localhost/disabled
+if (env.REDIS_URL && !env.REDIS_URL.includes('127.0.0.1') && !env.REDIS_URL.includes('localhost')) {
+  try {
+    const redisConnection = new IORedis(env.REDIS_URL, {
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+      lazyConnect: true,
+      retryStrategy: () => null, // Do not retry continuously if down
+    });
 
-  redisConnection.on('connect', () => {
-    console.log('[Queue] Redis connection established for BullMQ');
-    isRedisAvailable = true;
-  });
+    redisConnection.on('error', () => {
+      isRedisAvailable = false;
+    });
 
-  redisConnection.on('error', (err) => {
-    // Only warn once
-    if (isRedisAvailable) {
-      console.warn(`[Queue] Redis connection error: ${err.message}. Using in-process worker.`);
-    }
+    redisConnection.connect().then(() => {
+      console.log('[Queue] Cloud Redis connection established for BullMQ');
+      isRedisAvailable = true;
+      documentQueue = new Queue('document-processing', {
+        connection: redisConnection,
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 5000 },
+          removeOnComplete: true,
+        },
+      });
+    }).catch(() => {
+      isRedisAvailable = false;
+    });
+  } catch (err) {
     isRedisAvailable = false;
-  });
-
-  documentQueue = new Queue('document-processing', {
-    connection: redisConnection,
-    defaultJobOptions: {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 5000,
-      },
-      removeOnComplete: true,
-    },
-  });
-} catch (err) {
-  console.warn('[Queue] BullMQ init skipped; running local async task queue fallback.');
+  }
+} else {
+  // Local in-process queue mode (zero extra memory/disk required)
+  isRedisAvailable = false;
 }
 
 const addDocumentProcessingJob = async (documentId, versionNumber = 1) => {
