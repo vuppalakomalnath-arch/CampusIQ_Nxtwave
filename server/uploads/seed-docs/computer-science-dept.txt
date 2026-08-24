@@ -1,0 +1,12 @@
+DEPARTMENT OF COMPUTER SCIENCE & ENGINEERING: CURRICULUM & LAB GUIDE
+
+1. CURRICULUM HIGHLIGHTS:
+- 3rd Year Core Courses: Data Structures & Algorithms, Operating Systems, Database Management Systems, Computer Networks, and Theory of Computation.
+- Professional Electives: Artificial Intelligence, Distributed Cloud Computing, Blockchain Technologies, Cybersecurity, Natural Language Processing.
+- Capstone Project: Completed in two phases (Phase 1: Project formulation & literature survey in Semester 7; Phase 2: Implementation & thesis defense in Semester 8).
+
+2. ADVANCED COMPUTING & AI LAB REGULATIONS:
+- Lab Timings: Open Monday to Friday 8:30 AM to 8:00 PM; Saturday 9:00 AM to 4:00 PM.
+- High-Performance GPU Cluster: Accessible via SSH using campus VPN credentials for approved research students and final-year project teams.
+- Lab Coordinators: Prof. Dr. A. Sharma (Head of Department), Dr. R. Iyer (AI Lab Incharge).
+- Location: Turing Complex, 3rd Floor. Contact: cse-dept@campusiq.edu.
