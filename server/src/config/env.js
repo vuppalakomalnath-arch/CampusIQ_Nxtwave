@@ -10,7 +10,7 @@ const env = {
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
   
   // Database
-  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/campusiq',
+  MONGODB_URI: process.env.MONGODB_URI || ' ',
   JWT_SECRET: process.env.JWT_SECRET || 'campusiq_jwt_secret_dev_key_2026',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   
