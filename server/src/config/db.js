@@ -24,10 +24,7 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     console.error(`[Database] MongoDB Connection Error: ${error.message}`);
-    // In dev mode, don't crash immediately so mock or diagnostic endpoints work
-    if (env.NODE_ENV === 'production') {
-      process.exit(1);
-    }
+    throw error;
   }
 };
 
