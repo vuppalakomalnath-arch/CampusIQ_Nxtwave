@@ -28,13 +28,34 @@ app.use(
 
 app.use(
   cors({
-    origin: [
-      env.CLIENT_URL,
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      'http://localhost:3001',
-      'http://127.0.0.1:3001',
-    ],
+    origin: (origin, callback) => {
+      // Allow requests without an Origin header
+      // (health checks, server-to-server requests, etc.)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      const allowedOrigins = [
+        env.CLIENT_URL,
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3001',
+      ];
+
+      // Allow the main CampusIQ Vercel deployment
+      // and its Vercel preview deployments.
+      const isCampusIQVercelPreview =
+        /^https:\/\/campus-iq-nxtwave-[a-z0-9-]+-vuppalakomalnath-archs-projects\.vercel\.app$/i.test(
+          origin
+        );
+
+      if (allowedOrigins.includes(origin) || isCampusIQVercelPreview) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked origin: ${origin}`));
+    },
     credentials: true,
   })
 );
