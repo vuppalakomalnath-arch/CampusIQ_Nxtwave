@@ -76,14 +76,14 @@ export default function SettingsPage() {
                   <select
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2 text-sm text-slate-100 focus:border-brand-500 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2 text-sm text-slate-100 focus:border-brand-500 focus:outline-none cursor-pointer"
                   >
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Admissions">Admissions</option>
-                    <option value="Examination Cell">Examination Cell</option>
-                    <option value="Hostel & Student Affairs">Hostel & Student Affairs</option>
-                    <option value="Placements">Placements</option>
-                    <option value="General">General / All</option>
+                    <option value="Computer Science" className="bg-slate-900 text-slate-100">Computer Science</option>
+                    <option value="Admissions" className="bg-slate-900 text-slate-100">Admissions</option>
+                    <option value="Examination Cell" className="bg-slate-900 text-slate-100">Examination Cell</option>
+                    <option value="Hostel & Student Affairs" className="bg-slate-900 text-slate-100">Hostel & Student Affairs</option>
+                    <option value="Placements" className="bg-slate-900 text-slate-100">Placements</option>
+                    <option value="General" className="bg-slate-900 text-slate-100">General / All</option>
                   </select>
                 </div>
               </div>
@@ -104,13 +104,13 @@ export default function SettingsPage() {
                   <select
                     value={formData.preferredLanguage}
                     onChange={(e) => setFormData({ ...formData, preferredLanguage: e.target.value })}
-                    className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2 text-sm text-slate-100 focus:border-brand-500 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2 text-sm text-slate-100 focus:border-brand-500 focus:outline-none cursor-pointer"
                   >
-                    <option value="en">English (Default)</option>
-                    <option value="hi">Hindi (हिंदी)</option>
-                    <option value="es">Spanish (Español)</option>
-                    <option value="ta">Tamil (தமிழ்)</option>
-                    <option value="te">Telugu (తెలుగు)</option>
+                    <option value="en" className="bg-slate-900 text-slate-100">English (Default)</option>
+                    <option value="hi" className="bg-slate-900 text-slate-100">Hindi (हिंदी)</option>
+                    <option value="es" className="bg-slate-900 text-slate-100">Spanish (Español)</option>
+                    <option value="ta" className="bg-slate-900 text-slate-100">Tamil (தமிழ்)</option>
+                    <option value="te" className="bg-slate-900 text-slate-100">Telugu (తెలుగు)</option>
                   </select>
                 </div>
 

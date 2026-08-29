@@ -5,12 +5,12 @@ import ProtectedRoute from '../../../components/ProtectedRoute/ProtectedRoute';
 import AppShell from '../../../components/AppShell/AppShell';
 import api from '../../../services/api';
 import { useKnowledgeBaseStore } from '../../../store/knowledgeBaseStore';
-import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Plus, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DocumentUploadPage() {
   const router = useRouter();
-  const { collections, fetchCollections } = useKnowledgeBaseStore();
+  const { collections, fetchCollections, isLoading, error: storeError } = useKnowledgeBaseStore();
 
   const [file, setFile] = useState(null);
   const [title, setTitle] = useState('');
@@ -20,14 +20,28 @@ export default function DocumentUploadPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  // Quick Create Modal state
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [quickKbData, setQuickKbData] = useState({
+    name: '',
+    department: 'Admissions',
+    description: '',
+    type: 'global',
+    allowedRoles: ['student', 'faculty', 'admin'],
+  });
+  const [creatingKb, setCreatingKb] = useState(false);
+  const [quickKbError, setQuickKbError] = useState('');
+
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
 
   useEffect(() => {
-    if (collections.length > 0 && !knowledgeBaseId) {
-      setKnowledgeBaseId(collections[0]._id);
-      setDepartment(collections[0].department || 'General');
+    if (collections.length > 0) {
+      if (!knowledgeBaseId || !collections.some((c) => c._id === knowledgeBaseId)) {
+        setKnowledgeBaseId(collections[0]._id);
+        setDepartment(collections[0].department || 'General');
+      }
     }
   }, [collections, knowledgeBaseId]);
 
@@ -52,6 +66,37 @@ export default function DocumentUploadPage() {
     },
   });
 
+  const handleQuickCreateKb = async (e) => {
+    e.preventDefault();
+    if (!quickKbData.name.trim()) {
+      setQuickKbError('Please enter a collection name');
+      return;
+    }
+    setCreatingKb(true);
+    setQuickKbError('');
+    try {
+      const res = await api.post('/admin/knowledge-bases', quickKbData);
+      const newKb = res.data.data;
+      await fetchCollections();
+      if (newKb && newKb._id) {
+        setKnowledgeBaseId(newKb._id);
+        setDepartment(newKb.department || 'General');
+      }
+      setShowQuickCreate(false);
+      setQuickKbData({
+        name: '',
+        department: 'Admissions',
+        description: '',
+        type: 'global',
+        allowedRoles: ['student', 'faculty', 'admin'],
+      });
+    } catch (err) {
+      setQuickKbError(err.response?.data?.message || 'Failed to create knowledge base');
+    } finally {
+      setCreatingKb(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -59,7 +104,7 @@ export default function DocumentUploadPage() {
       return;
     }
     if (!knowledgeBaseId) {
-      setError('Please choose a target knowledge base');
+      setError('Please choose a target knowledge base (or create one first)');
       return;
     }
 
@@ -105,6 +150,47 @@ export default function DocumentUploadPage() {
               </p>
             </div>
           </div>
+
+          {storeError && (
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-300">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>Failed to load knowledge bases: {storeError}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => fetchCollections()}
+                className="flex items-center gap-1 rounded-lg bg-rose-500/20 px-2.5 py-1 text-xs font-medium hover:bg-rose-500/30 transition text-rose-200"
+              >
+                <RefreshCw className="h-3 w-3" />
+                <span>Retry</span>
+              </button>
+            </div>
+          )}
+
+          {!isLoading && collections.length === 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200">
+              <div className="flex items-start sm:items-center gap-2.5">
+                <AlertCircle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5 sm:mt-0" />
+                <div>
+                  <p className="font-semibold text-amber-300">No Knowledge Base Collections Found</p>
+                  <p className="text-[11px] text-amber-200/80 mt-0.5">
+                    Documents require a target collection to be categorized and indexed for RAG queries.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickCreate(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-amber-400 transition shadow"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Create Knowledge Base</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-300">
@@ -173,23 +259,50 @@ export default function DocumentUploadPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Target Knowledge Base
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                      Target Knowledge Base
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowQuickCreate(true)}
+                      className="text-[11px] font-semibold text-brand-400 hover:text-brand-300 flex items-center gap-1 transition"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>New Collection</span>
+                    </button>
+                  </div>
                   <select
                     value={knowledgeBaseId}
                     onChange={(e) => {
-                      setKnowledgeBaseId(e.target.value);
-                      const selected = collections.find((c) => c._id === e.target.value);
+                      const val = e.target.value;
+                      setKnowledgeBaseId(val);
+                      const selected = collections.find((c) => c._id === val);
                       if (selected) setDepartment(selected.department || 'General');
                     }}
-                    className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-slate-200 focus:border-brand-500 focus:outline-none"
+                    disabled={isLoading || collections.length === 0}
+                    className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-slate-100 focus:border-brand-500 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    {collections.map((c) => (
-                      <option key={c._id} value={c._id}>
-                        {c.name} ({c.department})
+                    {isLoading ? (
+                      <option value="" disabled className="bg-slate-900 text-slate-400">
+                        Loading knowledge bases...
                       </option>
-                    ))}
+                    ) : collections.length === 0 ? (
+                      <option value="" disabled className="bg-slate-900 text-slate-400">
+                        No knowledge bases found — Click + New Collection
+                      </option>
+                    ) : (
+                      <>
+                        <option value="" disabled className="bg-slate-900 text-slate-400">
+                          -- Select Knowledge Base --
+                        </option>
+                        {collections.map((c) => (
+                          <option key={c._id} value={c._id} className="bg-slate-900 text-slate-100 py-1.5">
+                            {c.name} ({c.department})
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -201,6 +314,7 @@ export default function DocumentUploadPage() {
                     type="text"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
+                    placeholder="e.g. Computer Science, Admissions, General"
                     className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-slate-200 focus:border-brand-500 focus:outline-none"
                   />
                 </div>
@@ -209,8 +323,8 @@ export default function DocumentUploadPage() {
 
             <button
               type="submit"
-              disabled={uploading || !file}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition hover:from-brand-500 hover:to-cyan-400 disabled:opacity-50"
+              disabled={uploading || !file || collections.length === 0}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition hover:from-brand-500 hover:to-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? (
                 <>
@@ -225,6 +339,92 @@ export default function DocumentUploadPage() {
               )}
             </button>
           </form>
+
+          {/* Quick Create Knowledge Base Modal */}
+          {showQuickCreate && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+              <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 className="text-base font-bold text-white">Create Knowledge Base</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickCreate(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {quickKbError && (
+                  <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{quickKbError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleQuickCreateKb} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                      Collection Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Admissions & Scholarships"
+                      value={quickKbData.name}
+                      onChange={(e) => setQuickKbData({ ...quickKbData, name: e.target.value })}
+                      className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-brand-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                      Department
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Admissions, Computer Science"
+                      value={quickKbData.department}
+                      onChange={(e) => setQuickKbData({ ...quickKbData, department: e.target.value })}
+                      className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-brand-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      rows="2"
+                      placeholder="Brief summary of documents in this collection..."
+                      value={quickKbData.description}
+                      onChange={(e) => setQuickKbData({ ...quickKbData, description: e.target.value })}
+                      className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-brand-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowQuickCreate(false)}
+                      className="rounded-xl px-4 py-2 text-xs text-slate-400 hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={creatingKb}
+                      className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
+                    >
+                      {creatingKb ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                      <span>{creatingKb ? 'Creating...' : 'Create & Select'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </AppShell>
     </ProtectedRoute>

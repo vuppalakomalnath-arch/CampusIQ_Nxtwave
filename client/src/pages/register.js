@@ -111,11 +111,11 @@ export default function Register() {
               <select
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full rounded-xl border border-slate-800 bg-slate-950/80 py-2.5 px-3 text-xs text-slate-200 focus:border-brand-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-800 bg-slate-950/80 py-2.5 px-3 text-xs text-slate-200 focus:border-brand-500 focus:outline-none cursor-pointer"
               >
-                <option value="student">Student</option>
-                <option value="faculty">Faculty</option>
-                <option value="admin">Administrator</option>
+                <option value="student" className="bg-slate-900 text-slate-100">Student</option>
+                <option value="faculty" className="bg-slate-900 text-slate-100">Faculty</option>
+                <option value="admin" className="bg-slate-900 text-slate-100">Administrator</option>
               </select>
             </div>
 
@@ -126,14 +126,14 @@ export default function Register() {
               <select
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                className="w-full rounded-xl border border-slate-800 bg-slate-950/80 py-2.5 px-3 text-xs text-slate-200 focus:border-brand-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-800 bg-slate-950/80 py-2.5 px-3 text-xs text-slate-200 focus:border-brand-500 focus:outline-none cursor-pointer"
               >
-                <option value="Computer Science">Computer Science</option>
-                <option value="Admissions">Admissions</option>
-                <option value="Examination Cell">Examination Cell</option>
-                <option value="Hostel & Student Affairs">Hostel</option>
-                <option value="Placements">Placements</option>
-                <option value="General">General / All</option>
+                <option value="Computer Science" className="bg-slate-900 text-slate-100">Computer Science</option>
+                <option value="Admissions" className="bg-slate-900 text-slate-100">Admissions</option>
+                <option value="Examination Cell" className="bg-slate-900 text-slate-100">Examination Cell</option>
+                <option value="Hostel & Student Affairs" className="bg-slate-900 text-slate-100">Hostel & Student Affairs</option>
+                <option value="Placements" className="bg-slate-900 text-slate-100">Placements</option>
+                <option value="General" className="bg-slate-900 text-slate-100">General / All</option>
               </select>
             </div>
           </div>

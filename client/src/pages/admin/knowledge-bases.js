@@ -146,10 +146,10 @@ export default function AdminKnowledgeBasesPage() {
                       <select
                         value={formData.type}
                         onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                        className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-brand-500 focus:outline-none"
+                        className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-brand-500 focus:outline-none cursor-pointer"
                       >
-                        <option value="global">Global Campus</option>
-                        <option value="department">Department-Specific</option>
+                        <option value="global" className="bg-slate-900 text-slate-100">Global Campus</option>
+                        <option value="department" className="bg-slate-900 text-slate-100">Department-Specific</option>
                       </select>
                     </div>
                   </div>

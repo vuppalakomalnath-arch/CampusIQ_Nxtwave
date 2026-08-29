@@ -90,13 +90,13 @@ export default function AdminDocumentsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-200 focus:outline-none"
+                className="rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-200 focus:outline-none cursor-pointer"
               >
-                <option value="All">All Statuses</option>
-                <option value="READY">Ready</option>
-                <option value="PROCESSING">Processing</option>
-                <option value="FAILED">Failed</option>
-                <option value="ARCHIVED">Archived</option>
+                <option value="All" className="bg-slate-900 text-slate-100">All Statuses</option>
+                <option value="READY" className="bg-slate-900 text-slate-100">Ready</option>
+                <option value="PROCESSING" className="bg-slate-900 text-slate-100">Processing</option>
+                <option value="FAILED" className="bg-slate-900 text-slate-100">Failed</option>
+                <option value="ARCHIVED" className="bg-slate-900 text-slate-100">Archived</option>
               </select>
 
               <button
